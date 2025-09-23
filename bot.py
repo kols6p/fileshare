@@ -37,7 +37,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 MONGO_URI = os.environ.get("MONGO_URI")
 LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL")) 
 UPDATE_CHANNEL = os.environ.get("UPDATE_CHANNEL") 
-SECOND_CHANNEL = os.environ.get("SECOND_CHANNEL")
+
 
 
 ADMIN_IDS_STR = os.environ.get("ADMIN_IDS", "")
@@ -68,7 +68,6 @@ def generate_random_string(length=6):
 async def is_user_member(client: Client, user_id: int) -> bool:
     try:
         await client.get_chat_member(chat_id=f"@{UPDATE_CHANNEL}", user_id=user_id)
-        await client.get_chat_member(chat_id=f"@{SECOND_CHANNEL}", user_id=user_id)
         return True
     except UserNotParticipant:
         return False
@@ -85,57 +84,40 @@ async def get_bot_mode() -> str:
 
 
 # --- Bot Command Handlers ---
+
 @app.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
-    user_id = message.from_user.id
-
-    if not users_collection.find_one({"_id": user_id}):
-        users_collection.insert_one({"_id": user_id})
-
     if len(message.command) > 1:
         file_id_str = message.command[1]
-
-        if not await is_user_member(client, user_id):
-            join_buttons = InlineKeyboardMarkup([
-                [InlineKeyboardButton("📢 Join Update Channel", url=f"https://t.me/{UPDATE_CHANNEL}")],
-                [InlineKeyboardButton("📢 Join Main Channel", url=f"https://t.me/{SECOND_CHANNEL}")],
-                [InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")]
-            ])
-
+        
+        if not await is_user_member(client, message.from_user.id):
+            join_button = InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/{UPDATE_CHANNEL}")
+            joined_button = InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")
+            keyboard = InlineKeyboardMarkup([[join_button], [joined_button]])
+            
             await message.reply(
-                f"👋 **Hello, {message.from_user.first_name}!**\n\n"
-                f"File access karne ke liye aapko dono channels join karne honge.",
-                reply_markup=join_buttons
+                f"👋 **Hello, {message.from_user.first_name}!**\n\nYe file access karne ke liye, aapko hamara update channel join karna hoga.",
+                reply_markup=keyboard
             )
             return
-
-        # ✅ Agar user already joined hai, tabhi file bhejna
-        await send_file(client, message, file_id_str)
-
-
-# --- Callback Query Handler ---
-@app.on_callback_query(filters.regex(r"^check_join_(.+)"))
-async def check_join_handler(client: Client, callback_query: CallbackQuery):
-    user_id = callback_query.from_user.id
-    file_id_str = callback_query.data.split("_", 2)[2]
-
-    if await is_user_member(client, user_id):
-        await callback_query.message.delete()
-        await send_file(client, callback_query.message, file_id_str)
-    else:
-        await callback_query.answer("Pehle dono channels join karo bhai!", show_alert=True)
 
         file_record = files_collection.find_one({"_id": file_id_str})
         if file_record:
             try:
-                await client.copy_message(chat_id=user_id, from_chat_id=LOG_CHANNEL, message_id=file_record['message_id'])
+                await client.copy_message(chat_id=message.from_user.id, from_chat_id=LOG_CHANNEL, message_id=file_record['message_id'])
             except Exception as e:
-                await callback_query.message.reply(f"❌ Sorry, file bhejte waqt ek error aa gaya.\n`Error: {e}`")
+                await message.reply(f"❌ Sorry, file bhejte waqt ek error aa gaya.\n`Error: {e}`")
         else:
-            await callback_query.message.reply("🤔 File not found! Ho sakta hai link galat ya expire ho gaya ho.")
+            await message.reply("🤔 File not found! Ho sakta hai link galat ya expire ho gaya ho.")
+    else:
+        await message.reply("**Hello! Mai ek File-to-Link bot hu.**\n\nMujhe koi bhi file bhejo, aur mai aapko uska ek shareable link dunga.")
 
-    # ✅ General fallback message (optional)
-    # await callback_query.message.reply("**Hello! Mai ek File-to-Link bot hu.**\n\nMujhe koi bhi file bhejo, aur mai aapko uska ek shareable link dunga.")
+@app.on_message(filters.private & (filters.document | filters.video | filters.photo | filters.audio))
+async def file_handler(client: Client, message: Message):
+    bot_mode = await get_bot_mode()
+    if bot_mode == "private" and message.from_user.id not in ADMINS:
+        await message.reply("😔 **Sorry!** Abhi sirf Admins hi files upload kar sakte hain.")
+        return
 
 
 @app.on_message(filters.private & (filters.document | filters.video | filters.photo | filters.audio))
