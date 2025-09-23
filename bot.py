@@ -37,6 +37,8 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 MONGO_URI = os.environ.get("MONGO_URI")
 LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL")) 
 UPDATE_CHANNEL = os.environ.get("UPDATE_CHANNEL") 
+SECOND_CHANNEL = os.environ.get("SECOND_CHANNEL")
+
 
 ADMIN_IDS_STR = os.environ.get("ADMIN_IDS", "")
 ADMINS = [int(admin_id.strip()) for admin_id in ADMIN_IDS_STR.split(',') if admin_id]
@@ -66,6 +68,7 @@ def generate_random_string(length=6):
 async def is_user_member(client: Client, user_id: int) -> bool:
     try:
         await client.get_chat_member(chat_id=f"@{UPDATE_CHANNEL}", user_id=user_id)
+        await client.get_chat_member(chat_id=f"@{SECOND_CHANNEL}", user_id=user_id)
         return True
     except UserNotParticipant:
         return False
@@ -96,6 +99,7 @@ async def start_handler(client: Client, message: Message):
         
         if not await is_user_member(client, user_id):
             join_button = InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/{UPDATE_CHANNEL}")
+             join_button = InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/{SECOND_CHANNEL}")
             joined_button = InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")
             keyboard = InlineKeyboardMarkup([[join_button], [joined_button]])
             
