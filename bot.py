@@ -130,11 +130,12 @@ async def check_join_handler(client: Client, callback_query: CallbackQuery):
             try:
                 await client.copy_message(chat_id=user_id, from_chat_id=LOG_CHANNEL, message_id=file_record['message_id'])
             except Exception as e:
-                await message.reply(f"❌ Sorry, file bhejte waqt ek error aa gaya.\n`Error: {e}`")
+                await callback_query.message.reply(f"❌ Sorry, file bhejte waqt ek error aa gaya.\n`Error: {e}`")
         else:
-            await message.reply("🤔 File not found! Ho sakta hai link galat ya expire ho gaya ho.")
-    else:
-        await message.reply("**Hello! Mai ek File-to-Link bot hu.**\n\nMujhe koi bhi file bhejo, aur mai aapko uska ek shareable link dunga.")
+            await callback_query.message.reply("🤔 File not found! Ho sakta hai link galat ya expire ho gaya ho.")
+
+    # ✅ General fallback message (optional)
+    # await callback_query.message.reply("**Hello! Mai ek File-to-Link bot hu.**\n\nMujhe koi bhi file bhejo, aur mai aapko uska ek shareable link dunga.")
 
 
 @app.on_message(filters.private & (filters.document | filters.video | filters.photo | filters.audio))
