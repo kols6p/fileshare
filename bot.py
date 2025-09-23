@@ -97,17 +97,20 @@ async def start_handler(client: Client, message: Message):
     if len(message.command) > 1:
         file_id_str = message.command[1]
         
-        if not await is_user_member(client, user_id):
-            join_button = InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/{UPDATE_CHANNEL}")
-             join_button = InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/{SECOND_CHANNEL}")
-            joined_button = InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")
-            keyboard = InlineKeyboardMarkup([[join_button], [joined_button]])
-            
-            await message.reply(
-                f"👋 **Hello, {message.from_user.first_name}!**\n\nYe file access karne ke liye, aapko hamara update channel join karna hoga.",
-                reply_markup=keyboard
-            )
-            return
+     if not await is_user_member(client, user_id):
+    join_buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📢 Join Update Channel", url=f"https://t.me/{UPDATE_CHANNEL}")],
+        [InlineKeyboardButton("📢 Join Main Channel", url=f"https://t.me/{SECOND_CHANNEL}")],
+        [InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")]
+    ])
+    
+    await message.reply(
+        f"👋 **Hello, {message.from_user.first_name}!**\n\n"
+        f"File access karne ke liye aapko dono channels join karne honge.",
+        reply_markup=join_buttons
+    )
+    return
+
 
         file_record = files_collection.find_one({"_id": file_id_str})
         if file_record:
