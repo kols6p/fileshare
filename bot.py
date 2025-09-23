@@ -85,7 +85,6 @@ async def get_bot_mode() -> str:
 
 
 # --- Bot Command Handlers ---
-
 @app.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
     user_id = message.from_user.id
@@ -96,7 +95,6 @@ async def start_handler(client: Client, message: Message):
     if len(message.command) > 1:
         file_id_str = message.command[1]
 
-        # ✅ Ye block iske andar proper indent hona chahiye
         if not await is_user_member(client, user_id):
             join_buttons = InlineKeyboardMarkup([
                 [InlineKeyboardButton("📢 Join Update Channel", url=f"https://t.me/{UPDATE_CHANNEL}")],
@@ -111,7 +109,21 @@ async def start_handler(client: Client, message: Message):
             )
             return
 
+        # ✅ Agar user already joined hai, tabhi file bhejna
+        await send_file(client, message, file_id_str)
 
+
+# --- Callback Query Handler ---
+@app.on_callback_query(filters.regex(r"^check_join_(.+)"))
+async def check_join_handler(client: Client, callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    file_id_str = callback_query.data.split("_", 2)[2]
+
+    if await is_user_member(client, user_id):
+        await callback_query.message.delete()
+        await send_file(client, callback_query.message, file_id_str)
+    else:
+        await callback_query.answer("Pehle dono channels join karo bhai!", show_alert=True)
 
         file_record = files_collection.find_one({"_id": file_id_str})
         if file_record:
