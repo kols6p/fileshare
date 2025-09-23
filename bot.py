@@ -242,4 +242,13 @@ async def broadcast_handler(client: Client, message: Message):
 
 # --- Bot Start ---
 if __name__ == "__main__":
-```
+    if not ADMINS:
+        logging.warning("WARNING: ADMIN_IDS is not set. Settings command aur broadcast command kaam nahi karega.")
+    
+    logging.info("Starting Flask web server...")
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
+    
+    logging.info("Bot is starting...")
+    app.run()
+    logging.info("Bot has stopped.")
