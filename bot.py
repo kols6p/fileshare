@@ -38,7 +38,7 @@ MONGO_URI = os.environ.get("MONGO_URI")
 LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL")) 
 UPDATE_CHANNEL = os.environ.get("UPDATE_CHANNEL") 
 
-ADMIN_IDS_STR = os.environ.get("ADMIN_IDS", "5000510713")
+ADMIN_IDS_STR = os.environ.get("ADMIN_IDS", "")
 ADMINS = [int(admin_id.strip()) for admin_id in ADMIN_IDS_STR.split(',') if admin_id]
 
 
