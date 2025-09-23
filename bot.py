@@ -89,27 +89,28 @@ async def get_bot_mode() -> str:
 @app.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
     user_id = message.from_user.id
-    
-    # Store user in DB agar pehle se nahi hai
+
     if not users_collection.find_one({"_id": user_id}):
         users_collection.insert_one({"_id": user_id})
 
     if len(message.command) > 1:
         file_id_str = message.command[1]
-        
-     if not await is_user_member(client, user_id):
-    join_buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📢 Join Update Channel", url=f"https://t.me/{UPDATE_CHANNEL}")],
-        [InlineKeyboardButton("📢 Join Main Channel", url=f"https://t.me/{SECOND_CHANNEL}")],
-        [InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")]
-    ])
-    
-    await message.reply(
-        f"👋 **Hello, {message.from_user.first_name}!**\n\n"
-        f"File access karne ke liye aapko dono channels join karne honge.",
-        reply_markup=join_buttons
-    )
-    return
+
+        # ✅ Ye block iske andar proper indent hona chahiye
+        if not await is_user_member(client, user_id):
+            join_buttons = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📢 Join Update Channel", url=f"https://t.me/{UPDATE_CHANNEL}")],
+                [InlineKeyboardButton("📢 Join Main Channel", url=f"https://t.me/{SECOND_CHANNEL}")],
+                [InlineKeyboardButton("✅ I Have Joined", callback_data=f"check_join_{file_id_str}")]
+            ])
+
+            await message.reply(
+                f"👋 **Hello, {message.from_user.first_name}!**\n\n"
+                f"File access karne ke liye aapko dono channels join karne honge.",
+                reply_markup=join_buttons
+            )
+            return
+
 
 
         file_record = files_collection.find_one({"_id": file_id_str})
