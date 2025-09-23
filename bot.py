@@ -1,6 +1,4 @@
-Sure! Yahan tumhara full fixed code hai jisme broadcast command properly kaam karega aur users ko sahi se message jayega:
 
-```python
 import os
 import logging
 import random
