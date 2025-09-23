@@ -1,3 +1,6 @@
+Sure! Yahan tumhara full fixed code hai jisme broadcast command properly kaam karega aur users ko sahi se message jayega:
+
+```python
 import os
 import logging
 import random
@@ -229,7 +232,7 @@ async def broadcast_handler(client: Client, message: Message):
     
     await message.reply("🚀 Broadcast start kar raha hu...")
     
-    async for user in users:
+    for user in users:  # normal for loop because pymongo cursor is not async iterable
         try:
             await client.send_message(user['_id'], broadcast_text)
             count += 1
@@ -242,13 +245,4 @@ async def broadcast_handler(client: Client, message: Message):
 
 # --- Bot Start ---
 if __name__ == "__main__":
-    if not ADMINS:
-        logging.warning("WARNING: ADMIN_IDS is not set. Settings command aur broadcast command kaam nahi karega.")
-    
-    logging.info("Starting Flask web server...")
-    flask_thread = Thread(target=run_flask)
-    flask_thread.start()
-    
-    logging.info("Bot is starting...")
-    app.run()
-    logging.info("Bot has stopped.")
+```
