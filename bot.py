@@ -192,8 +192,9 @@ async def check_join_callback(client: Client, callback_query: CallbackQuery):
                 await callback_query.message.edit_text(f"❌ File bhejte waqt error aa gaya.\n`Error: {e}`")
         else:
             await callback_query.message.edit_text("🤔 File not found!")
-    else:
-    await callback_query.answer(
-        "Aapne abhi tak channel join nahi kiya hai. Please join karke dobara try karein.",
-        show_alert=True
-    )
+       else:
+        await callback_query.answer(
+            "Aapne abhi tak channel join nahi kiya hai. Please join karke dobara try karein.",
+            show_alert=True
+        )
+
