@@ -80,19 +80,6 @@ async def get_bot_mode() -> str:
 # --- Bot Command Handlers ---
 
 @app.on_message(filters.command("start") & filters.private)
-@app.on_message(filters.private)
-async def track_user(client: Client, message: Message):
-    user_id = message.from_user.id
-    users_collection.update_one(
-        {"_id": user_id},
-        {"$set": {
-            "first_name": message.from_user.first_name,
-            "username": message.from_user.username,
-        }},
-        upsert=True
-    )
-
-
 async def start_handler(client: Client, message: Message):
     if len(message.command) > 1:
         file_id_str = message.command[1]
@@ -211,37 +198,6 @@ async def check_join_callback(client: Client, callback_query: CallbackQuery):
 
 # --- Bot ko Start Karo ---
 if __name__ == "__main__":
-
-    @app.on_message(filters.command("broadcast") & filters.private)
-async def broadcast_handler(client: Client, message: Message):
-    if message.from_user.id not in ADMINS:
-        await message.reply("❌ Aapke paas is command ko use karne ki permission nahi hai.")
-        return
-
-    if len(message.command) < 2:
-        await message.reply("❌ Broadcast message likhna bhool gaye ho. Example:\n\n`/broadcast Hello everyone!`", quote=True)
-        return
-
-    broadcast_text = message.text.split(None, 1)[1]
-    status_msg = await message.reply("📣 Broadcast shuru ho gaya hai...", quote=True)
-
-    sent = 0
-    failed = 0
-
-    users = users_collection.find()
-
-    for user in users:
-        user_id = user["_id"]
-        try:
-            await client.send_message(chat_id=user_id, text=broadcast_text)
-            sent += 1
-        except Exception as e:
-            logging.warning(f"❌ Failed to send to {user_id}: {e}")
-            failed += 1
-
-    await status_msg.edit_text(f"✅ **Broadcast Done!**\n\n👤 Sent: `{sent}`\n⚠️ Failed: `{failed}`")
-
-    
     if not ADMINS:
         logging.warning("WARNING: ADMIN_IDS is not set. Settings command kaam nahi karega.")
     
